@@ -34,6 +34,8 @@ var degree = 2
 var u = []
 var d = []
 
+var selectedControlPointIndex = null
+
 var init = function() {
     if (!gl) {
         console.log('This browser does not support WebGL, falling back to experimental-webgl')
@@ -84,34 +86,47 @@ var init = function() {
 
     gl.useProgram(program)
 
-    canvas.addEventListener("click", function(event) {
-        x = 2 * event.clientX / canvas.width - 1
-        y = 2 * (canvas.height - event.clientY) / canvas.height - 1
+    canvas.addEventListener("mousemove", function(e) {
+        var x = 2 * e.offsetX / canvas.width - 1
+        var y = 2 * (canvas.height - e.offsetY) / canvas.height - 1
 
-        addControlPoint(x, y)
+        if (e.buttons === 0) {
+            toggleControlPointsHighlighting(x, y)
+        } else if (e.buttons === 1) {
+            translateSelectedControlPoint(x, y)
+        }
     })
 
-    canvas.addEventListener("mousemove", function(e) {
-        var x = e.offsetX / canvas.width * 2 - 1
-        var y = e.offsetY / canvas.height * 2 - 1
+    canvas.addEventListener("mousedown", function(e) {
+        var x = 2 * e.offsetX / canvas.width - 1
+        var y = 2 * (canvas.height - e.offsetY) / canvas.height - 1
 
         for (var i = 0; i < d.length; i++) {
-            toggleControlPointHighlighting(i, x, y)
+            var deltaX = Math.abs(x - d[i].x)
+            var deltaY = Math.abs(y - d[i].y)
+
+            if (deltaX < 0.01 && deltaY < 0.01) {
+                selectedControlPointIndex = i
+                break
+            }
         }
+
+        if (e.buttons === 1) {
+            if (selectedControlPointIndex === null) {
+                addControlPoint(x, y)
+            }
+        } else if (e.buttons === 2) {
+            deleteControlPoint(i)
+        }
+    })
+
+    canvas.addEventListener("mouseup", function(e) {
+        selectedControlPointIndex = null
     })
 
     canvas.addEventListener('contextmenu', function(e) {
         e.preventDefault()
-        
-        splineControlPoints = []
-        splineVertices = []
 
-        d = []
-        u = []
-
-        gl.clearColor(0.7, 0.9, 0.8, 1.0)
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-        
         return false
     })
 }
@@ -169,16 +184,14 @@ var calculateKnots = function(n, p) {
 }
 
 var drawPoints = function(vertices) {
-    draw(vertices)
-    gl.drawArrays(gl.POINTS, 0, vertices.length / 6)
+    draw(vertices, gl.POINTS)
 }
 
 var drawLineStrip = function(vertices) {
-    draw(vertices)
-    gl.drawArrays(gl.LINE_STRIP, 0, vertices.length / 6)
+    draw(vertices, gl.LINE_STRIP)
 }
 
-var draw = function(vertices) {
+var draw = function(vertices, mode) {
     var vertexBufferObject = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW)
@@ -217,6 +230,8 @@ var draw = function(vertices) {
     gl.enableVertexAttribArray(positionAttribLocation)
     gl.enableVertexAttribArray(colorAttribLocation)
     gl.enableVertexAttribArray(sizeAttribLocation)
+
+    gl.drawArrays(mode, 0, vertices.length / 6)
 }
 
 var addControlPoint = function(x, y) {
@@ -224,17 +239,41 @@ var addControlPoint = function(x, y) {
     drawScene()
 }
 
-var toggleControlPointHighlighting = function(index, x, y) {
-    var deltaX = Math.abs(x - d[index].x)
-    var deltaY = Math.abs(y + d[index].y)
+var deleteControlPoint = function(index) {
+    d.splice(index, 1)
+    drawScene()
+}
 
-    if (deltaX < 0.01 && deltaY < 0.01) {
-        d[index].size = 6.0
-    } else {
-        d[index].size = 3.0
+var toggleControlPointsHighlighting = function(x, y) {
+    for (var i = 0; i < d.length; i++) {
+        var deltaX = Math.abs(x - d[i].x)
+        var deltaY = Math.abs(y - d[i].y)
+
+        if (deltaX < 0.01 && deltaY < 0.01) {
+            d[i].size = 6.0
+            d[i].r = 0.8
+            d[i].g = 0.1
+            d[i].b = 0.2
+        } else {
+            d[i].size = 3.0
+            d[i].r = 0
+            d[i].g = 0
+            d[i].b = 0
+        }
     }
 
-    drawScene()
+    if (d.length > 0) {
+        drawScene()
+    }
+}
+
+var translateSelectedControlPoint = function(x, y) {
+    if (selectedControlPointIndex !== null) {
+        d[selectedControlPointIndex].x = x
+        d[selectedControlPointIndex].y = y
+                
+        drawScene()
+    }
 }
 
 var drawScene = function() {
@@ -275,4 +314,16 @@ var drawSpline = function() {
 var clearCanvas = function() {
     gl.clearColor(0.7, 0.9, 0.8, 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+}
+
+var reset = function(e) {
+    splineControlPoints = []
+    splineVertices = []
+
+    d = []
+    u = []
+
+    selectedControlPointIndex = null
+
+    clearCanvas()
 }
