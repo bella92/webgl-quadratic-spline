@@ -91,7 +91,7 @@ var init = function() {
         var y = 2 * (canvas.height - e.offsetY) / canvas.height - 1
 
         if (e.buttons === 0) {
-            toggleControlPointsHighlighting(x, y)
+            selectNearControlPoint(x, y)
         } else if (e.buttons === 1) {
             translateSelectedControlPoint(x, y)
         }
@@ -101,22 +101,22 @@ var init = function() {
         var x = 2 * e.offsetX / canvas.width - 1
         var y = 2 * (canvas.height - e.offsetY) / canvas.height - 1
 
-        for (var i = 0; i < d.length; i++) {
-            var deltaX = Math.abs(x - d[i].x)
-            var deltaY = Math.abs(y - d[i].y)
+        // for (var i = 0; i < d.length; i++) {
+        //     var deltaX = Math.abs(x - d[i].x)
+        //     var deltaY = Math.abs(y - d[i].y)
 
-            if (deltaX < 0.01 && deltaY < 0.01) {
-                selectedControlPointIndex = i
-                break
-            }
-        }
+        //     if (deltaX < 0.01 && deltaY < 0.01) {
+        //         selectedControlPointIndex = i
+        //         break
+        //     }
+        // }
 
         if (e.buttons === 1) {
             if (selectedControlPointIndex === null) {
                 addControlPoint(x, y)
             }
         } else if (e.buttons === 2) {
-            deleteControlPoint(i)
+            deleteSelectedControlPoint()
         }
     })
 
@@ -239,32 +239,43 @@ var addControlPoint = function(x, y) {
     drawScene()
 }
 
-var deleteControlPoint = function(index) {
-    d.splice(index, 1)
-    drawScene()
+var deleteSelectedControlPoint = function() {
+    if (selectedControlPointIndex !== null) {
+        d.splice(selectedControlPointIndex, 1)
+        drawScene()
+    }
 }
 
-var toggleControlPointsHighlighting = function(x, y) {
+var selectNearControlPoint = function(x, y) {
+    var minDelta = { x: 0.01, y: 0.01 }
+    var closestControlPoint = null
+
     for (var i = 0; i < d.length; i++) {
         var deltaX = Math.abs(x - d[i].x)
         var deltaY = Math.abs(y - d[i].y)
 
-        if (deltaX < 0.01 && deltaY < 0.01) {
-            d[i].size = 6.0
-            d[i].r = 0.8
-            d[i].g = 0.1
-            d[i].b = 0.2
-        } else {
-            d[i].size = 3.0
-            d[i].r = 0
-            d[i].g = 0
-            d[i].b = 0
+        if (deltaX < minDelta.x && deltaY < minDelta.y) {
+            closestControlPoint = d[i]
+            minDelta = { x: deltaX, y: deltaY }
+            selectedControlPointIndex = i
         }
+
+        d[i].size = 3.0
+        d[i].r = 0
+        d[i].g = 0
+        d[i].b = 0
     }
 
-    if (d.length > 0) {
-        drawScene()
+    if (closestControlPoint !== null) {
+        closestControlPoint.size = 6.0
+        closestControlPoint.r = 0.8
+        closestControlPoint.g = 0.1
+        closestControlPoint.b = 0.2
+    } else {
+        selectedControlPointIndex = null
     }
+
+    drawScene()
 }
 
 var translateSelectedControlPoint = function(x, y) {
@@ -277,11 +288,13 @@ var translateSelectedControlPoint = function(x, y) {
 }
 
 var drawScene = function() {
-    u = calculateKnots(degree, d.length - 1)
+    if (d.length > 0) {
+        u = calculateKnots(degree, d.length - 1)
 
-    clearCanvas()
-    drawControlPolygon()
-    drawSpline()
+        clearCanvas()
+        drawControlPolygon()
+        drawSpline()
+    }
 }
 
 var drawControlPolygon = function() {
