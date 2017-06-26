@@ -1,0 +1,22 @@
+canvas {
+  border: 1px solid black;
+}
+
+#webgl-canvas {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+}
+
+#text-canvas {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  z-index: 2;
+}
+
+#reset-btn {
+  position: absolute;
+  left: 0px;
+  top: 600px;
+}

@@ -25,11 +25,15 @@ var fragmentShaderText = [
     '}'
 ].join('\n')
 
-var canvas = document.getElementById('canvas')
+var canvas = document.getElementById('webgl-canvas')
 var gl = canvas.getContext('webgl')
+
+var textCanvas = document.getElementById('text-canvas')
+var ctx = textCanvas.getContext("2d");
+
 var program
 
-var degree = 2
+var degree = 3
 
 var u = []
 var d = []
@@ -49,8 +53,7 @@ var init = function() {
         alert('This browser does not support WebGL')
     }
 
-    gl.clearColor(0.7, 0.9, 0.8, 1.0)
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    clearCanvas()
 
     var vertexShader = gl.createShader(gl.VERTEX_SHADER)
     var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
@@ -89,7 +92,7 @@ var init = function() {
 
     gl.useProgram(program)
 
-    canvas.addEventListener("mousemove", function(e) {
+    textCanvas.addEventListener("mousemove", function(e) {
         var x = 2 * e.offsetX / canvas.width - 1
         var y = 2 * (canvas.height - e.offsetY) / canvas.height - 1
 
@@ -102,7 +105,7 @@ var init = function() {
         }
     })
 
-    canvas.addEventListener("mousedown", function(e) {
+    textCanvas.addEventListener("mousedown", function(e) {
         var x = 2 * e.offsetX / canvas.width - 1
         var y = 2 * (canvas.height - e.offsetY) / canvas.height - 1
 
@@ -115,12 +118,12 @@ var init = function() {
         }
     })
 
-    canvas.addEventListener("mouseup", function(e) {
+    textCanvas.addEventListener("mouseup", function(e) {
         selectedControlPointIndex = null
         selectedKnotIndex = null
     })
 
-    canvas.addEventListener('contextmenu', function(e) {
+    textCanvas.addEventListener('contextmenu', function(e) {
         e.preventDefault()
 
         return false
@@ -358,6 +361,7 @@ var drawControlPolygon = function() {
 
     for (var i = 0; i < d.length; i++) {
         splineControlPoints = splineControlPoints.concat(Object.values(d[i]))
+        drawLabel("d" + (i - 1), d[i].x, d[i].y)
     }
 
     drawPoints(splineControlPoints)
@@ -370,6 +374,7 @@ var drawKnots = function() {
 
         for (var i = 0; i < knots.length; i++) {
             knotVertices = knotVertices.concat(Object.values(knots[i]))
+            drawLabel("u" + i, knots[i].x, knots[i].y)
         }
 
         drawPoints(knotVertices)
@@ -396,6 +401,8 @@ var drawSpline = function() {
 var clearCanvas = function() {
     gl.clearColor(0.7, 0.9, 0.8, 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
 
 var reset = function(e) {
@@ -410,4 +417,13 @@ var reset = function(e) {
     selectedKnotIndex = null
 
     clearCanvas()
+}
+
+var drawLabel = function(text, x, y) {
+    offsetX = (canvas.width * (x + 1) / 2)
+    offsetY = canvas.height - canvas.height * (y + 1) / 2
+
+    ctx.textAlign = "center"
+    ctx.fillStyle = "#000000"
+    ctx.fillText(text, offsetX, offsetY - 10)
 }
