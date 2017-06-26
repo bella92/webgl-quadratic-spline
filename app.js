@@ -34,7 +34,10 @@ var degree = 2
 var u = []
 var d = []
 
+var knots = []
+
 var selectedControlPointIndex = null
+var selectedKnotIndex = null
 
 var init = function() {
     if (!gl) {
@@ -92,8 +95,10 @@ var init = function() {
 
         if (e.buttons === 0) {
             selectNearControlPoint(x, y)
+            selectNearKnot(x, y)
         } else if (e.buttons === 1) {
             translateSelectedControlPoint(x, y)
+            slideKnot(x)
         }
     })
 
@@ -101,18 +106,8 @@ var init = function() {
         var x = 2 * e.offsetX / canvas.width - 1
         var y = 2 * (canvas.height - e.offsetY) / canvas.height - 1
 
-        // for (var i = 0; i < d.length; i++) {
-        //     var deltaX = Math.abs(x - d[i].x)
-        //     var deltaY = Math.abs(y - d[i].y)
-
-        //     if (deltaX < 0.01 && deltaY < 0.01) {
-        //         selectedControlPointIndex = i
-        //         break
-        //     }
-        // }
-
         if (e.buttons === 1) {
-            if (selectedControlPointIndex === null) {
+            if (y > -0.75 && selectedControlPointIndex === null) {
                 addControlPoint(x, y)
             }
         } else if (e.buttons === 2) {
@@ -122,6 +117,7 @@ var init = function() {
 
     canvas.addEventListener("mouseup", function(e) {
         selectedControlPointIndex = null
+        selectedKnotIndex = null
     })
 
     canvas.addEventListener('contextmenu', function(e) {
@@ -140,20 +136,28 @@ var N = function(t, i, n) {
         }
     }
 
-    var first = (t - u[i]) / (u[i + n] - u[i]) * N(t, i, n - 1)
-    var second = (u[i + n + 1] - t) / (u[i + n + 1] - u[i + 1]) * N(t, i + 1, n - 1)
+    var first = ((t - u[i]) / (u[i + n] - u[i])) * N(t, i, n - 1)
+    var second = ((u[i + n + 1] - t) / (u[i + n + 1] - u[i + 1])) * N(t, i + 1, n - 1)
+
+    if (isNaN(first)) {
+        first = 0
+    }
+
+    if (isNaN(second)) {
+        second = 0
+    }
 
     return first + second
 }
 
-var s = function(t, n, d) {
+var s = function(t) {
     var result = {
         x: 0.0, 
         y: 0.0
     }
 
     for (var i = 0; i < d.length; i++) {
-        var b = N(t, i, n)
+        var b = N(t, i, degree)
 
         result.x += d[i].x * b
         result.y += d[i].y * b
@@ -162,25 +166,33 @@ var s = function(t, n, d) {
     return result
 }
 
-var calculateKnots = function(n, p) {
-    var result = []
-    var m = n + p + 1
+var calculateKnots = function() {
+    knots = []
 
-    // for (var i = 0; i <= m; i++) {
-    //     if (i <= p) {
-    //         result[i] = 0
-    //     } else if (p < i && i <= n) {
-    //         result[i] = (i - p)/(n - p + 1)
-    //     } else {
-    //         result[i] = 1
-    //     }
-    // }
-
-    for (var i = 0; i <= m; i++) {
-        result.push(i)
+    for (var i = 0; i < d.length - degree + 1; i++) {
+        var value = i / (d.length - degree)
+        knots.push({ x: value * 2 - 1, y: -0.9, r: 0, g: 0, b: 0, size: 3.0 })
     }
 
-    return result
+    debugger
+
+    calculateKnotsVector()
+}
+
+var calculateKnotsVector = function() {
+    u = []
+
+    for (var i = 0; i < degree; i++) {
+        u.push(0)
+    }
+
+    for (var i = 0; i < knots.length; i++) {
+        u.push((knots[i].x + 1) / 2)
+    }
+    
+    for (var i = 0; i < degree; i++) {
+        u.push(1)
+    }
 }
 
 var drawPoints = function(vertices) {
@@ -236,12 +248,14 @@ var draw = function(vertices, mode) {
 
 var addControlPoint = function(x, y) {
     d.push({ x: x, y: y, r: 0, g: 0, b: 0, size: 3.0 })
+    calculateKnots()
     drawScene()
 }
 
 var deleteSelectedControlPoint = function() {
     if (selectedControlPointIndex !== null) {
         d.splice(selectedControlPointIndex, 1)
+        calculateKnots()
         drawScene()
     }
 }
@@ -278,6 +292,38 @@ var selectNearControlPoint = function(x, y) {
     drawScene()
 }
 
+var selectNearKnot = function(x, y) {
+    var minDelta = { x: 0.01, y: 0.01 }
+    var closestKnot = null
+
+    for (var i = 1; i < knots.length - 1; i++) {
+        var deltaX = Math.abs(x - knots[i].x)
+        var deltaY = Math.abs(y - knots[i].y)
+
+        if (deltaX < minDelta.x && deltaY < minDelta.y) {
+            closestKnot = knots[i]
+            minDelta = { x: deltaX, y: deltaY }
+            selectedKnotIndex = i
+        }
+
+        knots[i].size = 3.0
+        knots[i].r = 0
+        knots[i].g = 0
+        knots[i].b = 0
+    }
+
+    if (closestKnot !== null) {
+        closestKnot.size = 6.0
+        closestKnot.r = 0.8
+        closestKnot.g = 0.1
+        closestKnot.b = 0.2
+    } else {
+        selectedKnotIndex = null
+    }
+
+    drawScene()
+}
+
 var translateSelectedControlPoint = function(x, y) {
     if (selectedControlPointIndex !== null) {
         d[selectedControlPointIndex].x = x
@@ -287,13 +333,23 @@ var translateSelectedControlPoint = function(x, y) {
     }
 }
 
+var slideKnot = function(x) {
+    if (selectedKnotIndex !== null) {
+        if (knots[selectedKnotIndex - 1].x < x && x < knots[selectedKnotIndex + 1].x) {
+            knots[selectedKnotIndex].x = x
+        }
+                
+        calculateKnotsVector()
+        drawScene()
+    }
+}
+
 var drawScene = function() {
     if (d.length > 0) {
-        u = calculateKnots(degree, d.length - 1)
-
         clearCanvas()
         drawControlPolygon()
         drawSpline()
+        drawKnots()
     }
 }
 
@@ -308,18 +364,31 @@ var drawControlPolygon = function() {
     drawLineStrip(splineControlPoints)
 }
 
-var drawSpline = function() {
-    var splineVertices = []
+var drawKnots = function() {
+    if (d.length > degree) {
+        var knotVertices = []
 
-    for (var l = 2; l < u.length - 3; l++) {
-        for (var t = u[l]; t < u[l + 1]; t+=0.05) {
-            var point = s(t, degree, d)
-
-            splineVertices = splineVertices.concat([point.x, point.y, 0.8, 0.4, 0.9, 7.0])
+        for (var i = 0; i < knots.length; i++) {
+            knotVertices = knotVertices.concat(Object.values(knots[i]))
         }
-    }
 
-    if (splineVertices.length > 0) {
+        drawPoints(knotVertices)
+        drawLineStrip(knotVertices)
+    }
+}
+
+var drawSpline = function() {
+    if (d.length > degree) {
+        var splineVertices = []
+
+        for (var l = 0; l < u.length - 1; l++) {
+            for (var t = u[l]; t < u[l + 1]; t+=0.005) {
+                var point = s(t)
+
+                splineVertices = splineVertices.concat([point.x, point.y, 0.8, 0.4, 0.9, 7.0])
+            }
+        }
+
         drawLineStrip(splineVertices)
     }
 }
@@ -335,8 +404,10 @@ var reset = function(e) {
 
     d = []
     u = []
+    knots = []
 
     selectedControlPointIndex = null
+    selectedKnotIndex = null
 
     clearCanvas()
 }
