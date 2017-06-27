@@ -33,7 +33,7 @@ var ctx = textCanvas.getContext("2d");
 
 var program
 
-var degree = 3
+var degree = 2
 
 var u = []
 var d = []
@@ -52,8 +52,6 @@ var init = function() {
     if (!gl) {
         alert('This browser does not support WebGL')
     }
-
-    clearCanvas()
 
     var vertexShader = gl.createShader(gl.VERTEX_SHADER)
     var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
@@ -92,6 +90,8 @@ var init = function() {
 
     gl.useProgram(program)
 
+    clearCanvas()
+
     textCanvas.addEventListener("mousemove", function(e) {
         var x = 2 * e.offsetX / canvas.width - 1
         var y = 2 * (canvas.height - e.offsetY) / canvas.height - 1
@@ -110,9 +110,7 @@ var init = function() {
         var y = 2 * (canvas.height - e.offsetY) / canvas.height - 1
 
         if (e.buttons === 1) {
-            if (y > -0.75 && selectedControlPointIndex === null) {
-                addControlPoint(x, y)
-            }
+            addControlPoint(x, y)
         } else if (e.buttons === 2) {
             deleteSelectedControlPoint()
         }
@@ -170,16 +168,16 @@ var s = function(t) {
 }
 
 var calculateKnots = function() {
-    knots = []
+    if (d.length > degree) {
+        knots = []
 
-    for (var i = 0; i < d.length - degree + 1; i++) {
-        var value = i / (d.length - degree)
-        knots.push({ x: value * 2 - 1, y: -0.9, r: 0, g: 0, b: 0, size: 3.0 })
+        for (var i = 0; i < d.length - degree + 1; i++) {
+            var value = i / (d.length - degree) * 0.95 + 0.025
+            knots.push({ x: value * 2 - 1, y: -0.9, r: 0, g: 0, b: 0, size: 3.0 })
+        }
+
+        calculateKnotsVector()
     }
-
-    debugger
-
-    calculateKnotsVector()
 }
 
 var calculateKnotsVector = function() {
@@ -190,7 +188,7 @@ var calculateKnotsVector = function() {
     }
 
     for (var i = 0; i < knots.length; i++) {
-        u.push((knots[i].x + 1) / 2)
+        u.push(Math.round((((knots[i].x + 1) / 2 - 0.025) / 0.95) * 100) / 100)
     }
     
     for (var i = 0; i < degree; i++) {
@@ -204,6 +202,10 @@ var drawPoints = function(vertices) {
 
 var drawLineStrip = function(vertices) {
     draw(vertices, gl.LINE_STRIP)
+}
+
+var drawTriangles = function(vertices) {
+    draw(vertices, gl.TRIANGLES)
 }
 
 var draw = function(vertices, mode) {
@@ -250,9 +252,11 @@ var draw = function(vertices, mode) {
 }
 
 var addControlPoint = function(x, y) {
-    d.push({ x: x, y: y, r: 0, g: 0, b: 0, size: 3.0 })
-    calculateKnots()
-    drawScene()
+    if (y > -0.75 && selectedControlPointIndex === null) {
+        d.push({ x: x, y: y, r: 0, g: 0, b: 0, size: 3.0 })
+        calculateKnots()
+        drawScene()
+    }
 }
 
 var deleteSelectedControlPoint = function() {
@@ -328,7 +332,7 @@ var selectNearKnot = function(x, y) {
 }
 
 var translateSelectedControlPoint = function(x, y) {
-    if (selectedControlPointIndex !== null) {
+    if (y > -0.75 && selectedControlPointIndex !== null) {
         d[selectedControlPointIndex].x = x
         d[selectedControlPointIndex].y = y
                 
@@ -382,6 +386,21 @@ var drawKnots = function() {
     }
 }
 
+var drawKnotsPane = function() {
+    var knotsPaneVertices = [
+        //Triangle 1
+        -1, -0.75, 0.8, 0.8, 0.8, 3,
+        1, -0.75, 0.8, 0.8, 0.8, 3,
+        -1, -1, 0.8, 0.8, 0.8, 3,
+        //Triangle 2
+        1, -0.75, 0.8, 0.8, 0.8, 3,
+        -1, -1, 0.8, 0.8, 0.8, 3,
+        1, -1, 0.8, 0.8, 0.8, 3,
+    ]
+
+    drawTriangles(knotsPaneVertices)
+}
+
 var drawSpline = function() {
     if (d.length > degree) {
         var splineVertices = []
@@ -403,6 +422,8 @@ var clearCanvas = function() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    
+    drawKnotsPane()
 }
 
 var reset = function(e) {
