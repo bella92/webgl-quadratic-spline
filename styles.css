@@ -4,19 +4,19 @@ canvas {
 
 #webgl-canvas {
   position: absolute;
-  left: 0px;
+  left: calc(50% - 400px);
   top: 0px;
 }
 
 #text-canvas {
   position: absolute;
-  left: 0px;
+  left: calc(50% - 400px);
   top: 0px;
   z-index: 2;
 }
 
 #reset-btn {
   position: absolute;
-  left: 0px;
+  left: calc(50% - 400px);
   top: 605px;
 }

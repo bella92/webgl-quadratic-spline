@@ -21,6 +21,12 @@ var fragmentShaderText = [
     '',
     'void main()',
     '{',
+         'float r = 0.0, delta = 0.0;',
+         'vec2 cxy = 2.0 * gl_PointCoord - 1.0;',
+         'r = dot(cxy, cxy);',
+         'if (r > 1.0) {',
+         '    discard;',
+         '}',
     '    gl_FragColor = vec4(fragColor, 1.0);',
     '}'
 ].join('\n')
@@ -128,17 +134,17 @@ var init = function() {
     })
 }
 
-var N = function(t, i, n) {
+var N = function(x, i, n) {
     if (n === 0) {
-        if (t >= u[i] && t < u[i + 1]) {
+        if (x >= u[i] && x < u[i + 1]) {
             return 1
         } else {
             return 0
         }
     }
 
-    var first = ((t - u[i]) / (u[i + n] - u[i])) * N(t, i, n - 1)
-    var second = ((u[i + n + 1] - t) / (u[i + n + 1] - u[i + 1])) * N(t, i + 1, n - 1)
+    var first = ((x - u[i]) / (u[i + n] - u[i])) * N(x, i, n - 1)
+    var second = ((u[i + n + 1] - x) / (u[i + n + 1] - u[i + 1])) * N(x, i + 1, n - 1)
 
     if (isNaN(first)) {
         first = 0
@@ -151,14 +157,14 @@ var N = function(t, i, n) {
     return first + second
 }
 
-var s = function(t) {
+var s = function(x) {
     var result = {
         x: 0.0, 
         y: 0.0
     }
 
     for (var i = 0; i < d.length; i++) {
-        var b = N(t, i, degree)
+        var b = N(x, i, degree)
 
         result.x += d[i].x * b
         result.y += d[i].y * b
@@ -173,7 +179,7 @@ var calculateKnots = function() {
 
         for (var i = 0; i < d.length - degree + 1; i++) {
             var value = i / (d.length - degree) * 0.95 + 0.025
-            knots.push({ x: value * 2 - 1, y: -0.9, r: 0, g: 0, b: 0, size: 3.0 })
+            knots.push({ x: value * 2 - 1, y: -0.9, r: 0.05, g: 0.24, b: 0.23, size: 8.0 })
         }
 
         calculateKnotsVector()
@@ -253,7 +259,7 @@ var draw = function(vertices, mode) {
 
 var addControlPoint = function(x, y) {
     if (y > -0.75 && selectedControlPointIndex === null) {
-        d.push({ x: x, y: y, r: 0, g: 0, b: 0, size: 3.0 })
+        d.push({ x: x, y: y, r: 0.75, g: 0.12, b: 0.08, size: 8.0 })
         calculateKnots()
         drawScene()
     }
@@ -268,7 +274,7 @@ var deleteSelectedControlPoint = function() {
 }
 
 var selectNearControlPoint = function(x, y) {
-    var minDelta = { x: 0.01, y: 0.01 }
+    var minDelta = { x: 0.015, y: 0.015 }
     var closestControlPoint = null
 
     for (var i = 0; i < d.length; i++) {
@@ -281,17 +287,17 @@ var selectNearControlPoint = function(x, y) {
             selectedControlPointIndex = i
         }
 
-        d[i].size = 3.0
-        d[i].r = 0
-        d[i].g = 0
-        d[i].b = 0
+        d[i].size = 8.0
+        d[i].r = 0.75
+        d[i].g = 0.12
+        d[i].b = 0.08
     }
 
     if (closestControlPoint !== null) {
-        closestControlPoint.size = 6.0
-        closestControlPoint.r = 0.8
-        closestControlPoint.g = 0.1
-        closestControlPoint.b = 0.2
+        closestControlPoint.size = 10.0
+        closestControlPoint.r = 1
+        closestControlPoint.g = 0.44
+        closestControlPoint.b = 0.44
     } else {
         selectedControlPointIndex = null
     }
@@ -313,17 +319,17 @@ var selectNearKnot = function(x, y) {
             selectedKnotIndex = i
         }
 
-        knots[i].size = 3.0
-        knots[i].r = 0
-        knots[i].g = 0
-        knots[i].b = 0
+        knots[i].size = 8.0
+        knots[i].r = 0.05
+        knots[i].g = 0.24
+        knots[i].b = 0.23
     }
 
     if (closestKnot !== null) {
-        closestKnot.size = 6.0
-        closestKnot.r = 0.8
-        closestKnot.g = 0.1
-        closestKnot.b = 0.2
+        closestKnot.size = 10.0
+        closestKnot.r = 0.13
+        closestKnot.g = 0.68
+        closestKnot.b = 0.65
     } else {
         selectedKnotIndex = null
     }
@@ -354,8 +360,8 @@ var slideKnot = function(x) {
 var drawScene = function() {
     if (d.length > 0) {
         clearCanvas()
-        drawControlPolygon()
         drawSpline()
+        drawControlPolygon()
         drawKnots()
     }
 }
@@ -387,15 +393,19 @@ var drawKnots = function() {
 }
 
 var drawKnotsPane = function() {
+    var r = 0.27
+    var g = 0.53
+    var b = 0.51
+
     var knotsPaneVertices = [
         //Triangle 1
-        -1, -0.75, 0.8, 0.8, 0.8, 3,
-        1, -0.75, 0.8, 0.8, 0.8, 3,
-        -1, -1, 0.8, 0.8, 0.8, 3,
+        -1, -0.75, r, g, b, 3,
+        1, -0.75, r, g, b, 3,
+        -1, -1, r, g, b, 3,
         //Triangle 2
-        1, -0.75, 0.8, 0.8, 0.8, 3,
-        -1, -1, 0.8, 0.8, 0.8, 3,
-        1, -1, 0.8, 0.8, 0.8, 3,
+        1, -0.75, r, g, b, 3,
+        -1, -1, r, g, b, 3,
+        1, -1, r, g, b, 3,
     ]
 
     drawTriangles(knotsPaneVertices)
@@ -409,7 +419,7 @@ var drawSpline = function() {
             for (var t = u[l]; t < u[l + 1]; t+=0.005) {
                 var point = s(t)
 
-                splineVertices = splineVertices.concat([point.x, point.y, 0.8, 0.4, 0.9, 7.0])
+                splineVertices = splineVertices.concat([point.x, point.y, 0.05, 0.24, 0.23, 7.0])
             }
         }
 
@@ -418,7 +428,7 @@ var drawSpline = function() {
 }
 
 var clearCanvas = function() {
-    gl.clearColor(0.7, 0.9, 0.8, 1.0)
+    gl.clearColor(0.90, 1, 0.96, 1.0)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -445,6 +455,7 @@ var drawLabel = function(text, x, y) {
     offsetY = canvas.height - canvas.height * (y + 1) / 2
 
     ctx.textAlign = "center"
-    ctx.fillStyle = "#000000"
+    ctx.fillStyle = "#0d3d3b"
+    ctx.font = "bold 10pt Courier"
     ctx.fillText(text, offsetX, offsetY - 10)
 }
