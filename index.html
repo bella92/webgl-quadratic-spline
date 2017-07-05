@@ -1,14 +1,24 @@
 <html>
     <head>
-        <title>Quadratic Spline</title>
+        <title>2D Quadratic Spline</title>
         <link rel="stylesheet" type="text/css" href="styles.css">
     </head>
     <body onload="init()">
+        <h1>2D Quadratic (optional n-degree) Spline</h1>
+        <h2>Izabela Nedyalkova</h2>
+
         <canvas id="webgl-canvas" width="800" height="600">
             This browser does not support HTML5
         </canvas>
         <canvas id="text-canvas" width="800" height="600"></canvas>
+
         <button id="reset-btn" onclick="reset()">Reset</button>
+        <label id="current-degree-label">
+            Degree:
+        </label>
+        <input type="text" id="current-degree" />
+        <button id="set-degree-btn" onclick="setDegree()">Set Degree</button>
+        
         <script src="app.js"></script>
     </body>
 </html>

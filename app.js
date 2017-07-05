@@ -31,15 +31,18 @@ var fragmentShaderText = [
     '}'
 ].join('\n')
 
+var degree = 2
+
 var canvas = document.getElementById('webgl-canvas')
 var gl = canvas.getContext('webgl')
 
 var textCanvas = document.getElementById('text-canvas')
-var ctx = textCanvas.getContext("2d");
+var ctx = textCanvas.getContext("2d")
+
+var currentDegree = document.getElementById('current-degree')
+currentDegree.value = degree
 
 var program
-
-var degree = 2
 
 var u = []
 var d = []
@@ -179,7 +182,7 @@ var calculateKnots = function() {
 
         for (var i = 0; i < d.length - degree + 1; i++) {
             var value = i / (d.length - degree) * 0.95 + 0.025
-            knots.push({ x: value * 2 - 1, y: -0.9, r: 0.05, g: 0.24, b: 0.23, size: 8.0 })
+            knots.push({ x: value * 2 - 1, y: -0.77, r: 0.05, g: 0.24, b: 0.23, size: 8.0 })
         }
 
         calculateKnotsVector()
@@ -258,7 +261,7 @@ var draw = function(vertices, mode) {
 }
 
 var addControlPoint = function(x, y) {
-    if (y > -0.75 && selectedControlPointIndex === null) {
+    if (y > -0.65 && selectedControlPointIndex === null) {
         d.push({ x: x, y: y, r: 0.75, g: 0.12, b: 0.08, size: 8.0 })
         calculateKnots()
         drawScene()
@@ -338,7 +341,7 @@ var selectNearKnot = function(x, y) {
 }
 
 var translateSelectedControlPoint = function(x, y) {
-    if (y > -0.75 && selectedControlPointIndex !== null) {
+    if (y > -0.65 && selectedControlPointIndex !== null) {
         d[selectedControlPointIndex].x = x
         d[selectedControlPointIndex].y = y
                 
@@ -363,6 +366,7 @@ var drawScene = function() {
         drawSpline()
         drawControlPolygon()
         drawKnots()
+        calculateBezierControlPoints()
     }
 }
 
@@ -399,11 +403,11 @@ var drawKnotsPane = function() {
 
     var knotsPaneVertices = [
         //Triangle 1
-        -1, -0.75, r, g, b, 3,
-        1, -0.75, r, g, b, 3,
+        -1, -0.65, r, g, b, 3,
+        1, -0.65, r, g, b, 3,
         -1, -1, r, g, b, 3,
         //Triangle 2
-        1, -0.75, r, g, b, 3,
+        1, -0.65, r, g, b, 3,
         -1, -1, r, g, b, 3,
         1, -1, r, g, b, 3,
     ]
@@ -455,7 +459,7 @@ var drawLabel = function(text, x, y) {
     offsetY = canvas.height - canvas.height * (y + 1) / 2
 
     ctx.textAlign = "center"
-    ctx.fillStyle = "#0d3d3b"
+    ctx.fillStyle = "#bf1f14"
     ctx.font = "bold 10pt Courier"
     ctx.fillText(text, offsetX, offsetY - 10)
 }
