@@ -463,3 +463,143 @@ var drawLabel = function(text, x, y) {
     ctx.font = "bold 10pt Courier"
     ctx.fillText(text, offsetX, offsetY - 10)
 }
+
+var setDegree = function() {
+    degree = parseInt(currentDegree.value, 10)
+    reset()
+}
+
+// var calculateBezierControlPoints = function() {
+//     // Qi(t)=(1−ai)Pi−1+aiPi
+
+//     var newPoints = []
+
+//     for (var i = 1; i < d.length; i++) {
+//         var qi = (1 - a(i)) * d[i - 1] + a(i) * d[i]
+//     }
+// }
+
+// var a = function() {
+
+// }
+
+
+
+
+
+// var newPoints = []
+
+// var calculateBezierControlPoints = function() {
+//     newPoints = []
+
+//     for (var i = 1; i < d.length; i++) {
+//         var delta = calculateDelta
+
+//         var x = ((u[i] + u[i + 1]) / delta) * d[i - 1].x + (u[i - 1] / delta) * d[i + 1].x
+//         var y = ((u[i] + u[i + 1]) / delta) * d[i - 1].y + (u[i - 1] / delta) * d[i + 1].y
+
+//         newPoints.push(x)
+//         newPoints.push(y)
+//         newPoints.push(0)
+//         newPoints.push(0)
+//         newPoints.push(0)
+//         newPoints.push(5)
+//     }
+
+//     if (newPoints.length > 0) {
+//         drawPoints(newPoints)
+//     }
+// }
+
+// var calculateDelta = function(i) {
+//     var delta = 0
+
+//     if (u[i - 2]) {
+//         delta += u[i - 2]
+//     }
+
+//     if (u[i - 1]) {
+//         delta += u[i - 1]
+//     }
+
+//     if (u[i]) {
+//         delta += u[i]
+//     }
+    
+//     return delta
+// }
+
+
+// var newPoints = []
+
+// var calculateBezierControlPoints = function() {
+//     for (var r = degree - 1; r < u.length - degree + 1; r++) {
+//         var p = degree - 1 - 1//degree - 1 - s
+
+//         for (var i = 0; i <= r - k + 1; i++) {
+//             newPoints.push(d[i])
+//         }
+        
+//         for (var i = 0; i <= k - 1; i++) {
+//             newPoints.push(d[r - k + 1 + i])
+//         }
+
+//         for (var j = 1; j <= p; j++) {
+//             for (var i = j; i <= k - 1; i++) {
+//                 var a = 
+//             }
+//         }
+//     }
+// }
+
+
+var newPoints = []
+
+var calculateBezierControlPoints = function() {
+    newPoints = []
+
+    if(d.length > 4) {
+        var l = d.length - 1
+        
+        // newPoints.push(d[0])
+        newPoints.push(d[0].x)
+        newPoints.push(d[0].y)
+        newPoints.push(0)
+        newPoints.push(0)
+        newPoints.push(0)
+        newPoints.push(15)
+
+        var x = (delta(1)/(delta(0) + delta(1))) * d[0].x + (delta(0)/(delta(0) + delta(1))) * d[1].x
+        var y = (delta(1)/(delta(0) + delta(1))) * d[0].y + (delta(0)/(delta(0) + delta(1))) * d[1].y
+        
+        newPoints.push(x)
+        newPoints.push(y)
+        newPoints.push(0)
+        newPoints.push(0)
+        newPoints.push(0)
+        newPoints.push(15)
+
+        x = (delta(l - 1)/(delta(l - 2) + delta(l - 1))) * d[l - 1].x + (delta(l - 2)/(delta(l - 2) + delta(l - 1))) * d[l].x
+        y = (delta(l - 1)/(delta(l - 2) + delta(l - 1))) * d[l - 1].y + (delta(l - 2)/(delta(l - 2) + delta(l - 1))) * d[l].y
+        
+        newPoints.push(x)
+        newPoints.push(y)
+        newPoints.push(0)
+        newPoints.push(0)
+        newPoints.push(0)
+        newPoints.push(15)
+
+        // newPoints.push(d[l].x)
+        // newPoints.push(d[l].y)
+        // newPoints.push(0)
+        // newPoints.push(0)
+        // newPoints.push(0)
+        // newPoints.push(15)
+
+        drawPoints(newPoints)
+    }
+}
+
+var delta = function(i) {
+    return u[i + 1 + degree - 1] - u[i + degree - 1]//degree??
+}
