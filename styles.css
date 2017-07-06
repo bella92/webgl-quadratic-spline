@@ -130,7 +130,7 @@ h2 {
     background: #E5FFF5;
 }
 
-#baba {
+#show-bezier-control-polygon-container {
     position: absolute;
     left: calc(50% - 400px + 75px);
     top: 662px;

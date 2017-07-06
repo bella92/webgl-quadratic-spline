@@ -43,6 +43,8 @@ var ctx = textCanvas.getContext("2d")
 var degreeInput = document.getElementById('current-degree')
 degreeInput.value = degree
 
+var showBezierControlPolygonContainer = document.getElementById('show-bezier-control-polygon-container')
+
 var showBezierControlPolygonCheckbox = document.getElementById('show-bezier-control-polygon')
 showBezierControlPolygonCheckbox.value = showBezierControlPolygon
 
@@ -484,11 +486,6 @@ var drawLabel = function(text, x, y, direction, color) {
     ctx.fillText(text, offsetX, offsetY - (direction * 10))
 }
 
-var setDegree = function() {
-    degree = parseInt(degreeInput.value, 10)
-    reset()
-}
-
 var b = []
 
 var calculateCubicBezierControlPoints = function() {
@@ -496,7 +493,7 @@ var calculateCubicBezierControlPoints = function() {
 
     if (d.length > degree) {
         b[0] = {x: d[0].x, y: d[0].y, r: 0.13, g: 0.68, b: 0.65, size: 5}
-        b[1] = {x: d[1].x, y: d[1].y, r: 0, g: 0.4, b: 1, size: 5}
+        b[1] = {x: d[1].x, y: d[1].y, r: 0.13, g: 0.68, b: 0.65, size: 5}
 
         for (var i = 2; i < d.length - 2; i++) {
             b[3 * i - 2] = {
@@ -523,7 +520,7 @@ var calculateCubicBezierControlPoints = function() {
         var l = d.length - 3
 
         b[3 * l - 1] = {x: d[l + 1].x, y: d[l + 1].y, r: 0.13, g: 0.68, b: 0.65, size: 5}
-        b[3 * l] = {x: d[l + 2].x, y: d[l + 2].y, r: 0, g: 0.4, b: 1, size: 5}
+        b[3 * l] = {x: d[l + 2].x, y: d[l + 2].y, r: 0.13, g: 0.68, b: 0.65, size: 5}
 
         for (var i = 1; i < l; i++) {
             b[3 * i] = {
@@ -601,6 +598,20 @@ var delta = function(i) {
     } else {
         return deltaI(i - 2) + deltaI(i - 1) + deltaI(i)
     }
+}
+
+var setDegree = function() {
+    degree = parseInt(degreeInput.value, 10)
+
+    if (degree === 2 || degree === 3) {
+        showBezierControlPolygonContainer.style.display = "block"
+    } else {
+        showBezierControlPolygon = false
+        showBezierControlPolygonCheckbox.checked = false
+        showBezierControlPolygonContainer.style.display = "none"
+    }
+
+    reset()
 }
 
 var toggleBezierControlPolygon = function() {
