@@ -420,7 +420,7 @@ var drawSpline = function() {
         var splineVertices = []
 
         for (var l = 0; l < u.length - 1; l++) {
-            for (var t = u[l]; t < u[l + 1]; t+=0.005) {
+            for (var t = u[l]; t < u[l + 1]; t+=0.0005) {
                 var point = s(t)
 
                 splineVertices = splineVertices.concat([point.x, point.y, 0.05, 0.24, 0.23, 7.0])
@@ -474,41 +474,52 @@ var setDegree = function() {
     reset()
 }
 
-var newPoints = []
+var b = []
 
 var calculateBezierControlPoints = function() {
-    newPoints = []
+    b = []
 
     if (d.length > degree) {
-        // newPoints[0] = {x: d[0].x, y: d[0].y, r: 0, g: 0, b: 0, size: 15}
-        // newPoints[1] = {x: d[1].x, y: d[1].y, r: 0, g: 0, b: 0, size: 15}
+        b[0] = {x: d[0].x, y: d[0].y, r: 0, g: 0, b: 0, size: 5}
+        b[1] = {x: d[1].x, y: d[1].y, r: 0, g: 0, b: 0, size: 5}
 
         for (var i = 2; i < d.length - 2; i++) {
-            newPoints[3 * i - 2] = {
+            b[3 * i - 2] = {
                 x: ((deltaI(i) + deltaI(i + 1)) / delta(i + 1)) * d[i].x + ((deltaI(i - 1)) / delta(i + 1)) * d[i + 1].x,
                 y: ((deltaI(i) + deltaI(i + 1)) / delta(i + 1)) * d[i].y + ((deltaI(i - 1)) / delta(i + 1)) * d[i + 1].y,
                 r: 0,
                 g: 0,
                 b: 0,
-                size: 15
+                size: 5
             }
         }
 
         for (var i = 1; i < d.length - 3; i++) {
-            newPoints[3 * i - 1] = {
+            b[3 * i - 1] = {
                 x: (deltaI(i + 1) / delta(i + 1)) * d[i].x + ((deltaI(i - 1) + deltaI(i)) / delta(i + 1)) * d[i + 1].x,
                 y: (deltaI(i + 1) / delta(i + 1)) * d[i].y + ((deltaI(i - 1) + deltaI(i)) / delta(i + 1)) * d[i + 1].y,
                 r: 0,
                 g: 0,
                 b: 0,
-                size: 15
+                size: 5
             }
         }
 
-        // var l = d.length - 3
+        var l = d.length - 3
 
-        // newPoints[3 * l - 1] = {x: d[l + 1].x, y: d[l + 1].y, r: 0, g: 0, b: 0, size: 15}
-        // newPoints[3 * l] = {x: d[l + 2].x, y: d[l + 2].y, r: 0, g: 0, b: 0, size: 15}
+        b[3 * l - 1] = {x: d[l + 1].x, y: d[l + 1].y, r: 0, g: 0, b: 0, size: 5}
+        b[3 * l] = {x: d[l + 2].x, y: d[l + 2].y, r: 0, g: 0, b: 0, size: 5}
+
+        for (var i = 1; i < l; i++) {
+            b[3 * i] = {
+                x: (deltaI(i + 1) / (deltaI(i) + deltaI(i + 1))) * b[3 * i - 1].x + (deltaI(i) / (deltaI(i) + deltaI(i + 1))) * b[3 * i + 1].x,
+                y: (deltaI(i + 1) / (deltaI(i) + deltaI(i + 1))) * b[3 * i - 1].y + (deltaI(i) / (deltaI(i) + deltaI(i + 1))) * b[3 * i + 1].y,
+                r: 0,
+                g: 0,
+                b: 0,
+                size: 5
+            }
+        }
 
         drawBezierControlPoints()
     }
@@ -517,23 +528,19 @@ var calculateBezierControlPoints = function() {
 var drawBezierControlPoints = function() {
     var bezierPoints = []
 
-    for (var i = 0; i < newPoints.length; i++) {
-        if (newPoints[i]) {
-            bezierPoints = bezierPoints.concat(Object.values(newPoints[i]))
-            drawLabel("b" + i, newPoints[i].x, newPoints[i].y, -1)
+    for (var i = 0; i < b.length; i++) {
+        if (b[i]) {
+            bezierPoints = bezierPoints.concat(Object.values(b[i]))
+            drawLabel("b" + i, b[i].x, b[i].y, -1)
         }
     }
 
     drawPoints(bezierPoints)
+    drawLineStrip(bezierPoints)
 }
 
 var deltaI = function(i) {
-    var index = i + degree
-
-    if (!u[index + 1] || !u[index]) {
-        return 0
-    }
-
+    var index = i + degree - 1
     return u[index + 1] - u[index]
 }
 
