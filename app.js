@@ -524,7 +524,7 @@ var drawBezierControlPoints = function() {
         }
     }
 
-    drawPoints(baba)
+    drawPoints(bezierPoints)
 }
 
 var deltaI = function(i) {
