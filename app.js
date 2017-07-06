@@ -32,6 +32,7 @@ var fragmentShaderText = [
 ].join('\n')
 
 var degree = 2
+var showBezierControlPolygon = false
 
 var canvas = document.getElementById('webgl-canvas')
 var gl = canvas.getContext('webgl')
@@ -39,8 +40,11 @@ var gl = canvas.getContext('webgl')
 var textCanvas = document.getElementById('text-canvas')
 var ctx = textCanvas.getContext("2d")
 
-var currentDegree = document.getElementById('current-degree')
-currentDegree.value = degree
+var degreeInput = document.getElementById('current-degree')
+degreeInput.value = degree
+
+var showBezierControlPolygonCheckbox = document.getElementById('show-bezier-control-polygon')
+showBezierControlPolygonCheckbox.value = showBezierControlPolygon
 
 var program
 
@@ -367,10 +371,12 @@ var drawScene = function() {
         drawControlPolygon()
         drawKnots()
 
-        if (degree === 2) {
-            calculateQuadraticBezierControlPoints()
-        } else {
-            calculateCubicBezierControlPoints()
+        if (showBezierControlPolygon) {
+            if (degree === 2) {
+                calculateQuadraticBezierControlPoints()
+            } else {
+                calculateCubicBezierControlPoints()
+            }
         }
     }
 }
@@ -479,7 +485,7 @@ var drawLabel = function(text, x, y, direction, color) {
 }
 
 var setDegree = function() {
-    degree = parseInt(currentDegree.value, 10)
+    degree = parseInt(degreeInput.value, 10)
     reset()
 }
 
@@ -489,16 +495,16 @@ var calculateCubicBezierControlPoints = function() {
     b = []
 
     if (d.length > degree) {
-        b[0] = {x: d[0].x, y: d[0].y, r: 0, g: 0.4, b: 1, size: 5}
+        b[0] = {x: d[0].x, y: d[0].y, r: 0.13, g: 0.68, b: 0.65, size: 5}
         b[1] = {x: d[1].x, y: d[1].y, r: 0, g: 0.4, b: 1, size: 5}
 
         for (var i = 2; i < d.length - 2; i++) {
             b[3 * i - 2] = {
                 x: ((deltaI(i) + deltaI(i + 1)) / delta(i + 1)) * d[i].x + ((deltaI(i - 1)) / delta(i + 1)) * d[i + 1].x,
                 y: ((deltaI(i) + deltaI(i + 1)) / delta(i + 1)) * d[i].y + ((deltaI(i - 1)) / delta(i + 1)) * d[i + 1].y,
-                r: 0,
-                g: 0.4,
-                b: 1,
+                r: 0.13,
+                g: 0.68,
+                b: 0.65,
                 size: 5
             }
         }
@@ -507,25 +513,25 @@ var calculateCubicBezierControlPoints = function() {
             b[3 * i - 1] = {
                 x: (deltaI(i + 1) / delta(i + 1)) * d[i].x + ((deltaI(i - 1) + deltaI(i)) / delta(i + 1)) * d[i + 1].x,
                 y: (deltaI(i + 1) / delta(i + 1)) * d[i].y + ((deltaI(i - 1) + deltaI(i)) / delta(i + 1)) * d[i + 1].y,
-                r: 0,
-                g: 0.4,
-                b: 1,
+                r: 0.13,
+                g: 0.68,
+                b: 0.65,
                 size: 5
             }
         }
 
         var l = d.length - 3
 
-        b[3 * l - 1] = {x: d[l + 1].x, y: d[l + 1].y, r: 0, g: 0.4, b: 1, size: 5}
+        b[3 * l - 1] = {x: d[l + 1].x, y: d[l + 1].y, r: 0.13, g: 0.68, b: 0.65, size: 5}
         b[3 * l] = {x: d[l + 2].x, y: d[l + 2].y, r: 0, g: 0.4, b: 1, size: 5}
 
         for (var i = 1; i < l; i++) {
             b[3 * i] = {
                 x: (deltaI(i + 1) / (deltaI(i) + deltaI(i + 1))) * b[3 * i - 1].x + (deltaI(i) / (deltaI(i) + deltaI(i + 1))) * b[3 * i + 1].x,
                 y: (deltaI(i + 1) / (deltaI(i) + deltaI(i + 1))) * b[3 * i - 1].y + (deltaI(i) / (deltaI(i) + deltaI(i + 1))) * b[3 * i + 1].y,
-                r: 0,
-                g: 0.4,
-                b: 1,
+                r: 0.13,
+                g: 0.68,
+                b: 0.65,
                 size: 5
             }
         }
@@ -538,15 +544,15 @@ var calculateQuadraticBezierControlPoints = function() {
     b = []
 
     if (d.length > degree) {
-        b[0] = {x: d[0].x, y: d[0].y, r: 0, g: 0.4, b: 1, size: 5}
+        b[0] = {x: d[0].x, y: d[0].y, r: 0.13, g: 0.68, b: 0.65, size: 5}
 
         for (var i = 0; i < d.length - 1; i++) {
             b[2 * i - 1] = {
                 x: d[i].x,
                 y: d[i].y,
-                r: 0,
-                g: 0.4,
-                b: 1,
+                r: 0.13,
+                g: 0.68,
+                b: 0.65,
                 size: 5
             }
         }
@@ -555,16 +561,16 @@ var calculateQuadraticBezierControlPoints = function() {
             b[2 * i] = {
                 x: (deltaI(i + 1) / delta(i + 1)) * b[2 * i - 1].x + ((deltaI(i)) / delta(i + 1)) * b[2 * i + 1].x,
                 y: (deltaI(i + 1) / delta(i + 1)) * b[2 * i - 1].y + ((deltaI(i)) / delta(i + 1)) * b[2 * i + 1].y,
-                r: 0,
-                g: 0.4,
-                b: 1,
+                r: 0.13,
+                g: 0.68,
+                b: 0.65,
                 size: 5
             }
         }
         
         var l = d.length - 2
 
-        b[2 * l] = {x: d[l + 1].x, y: d[l + 1].y, r: 0, g: 0.4, b: 1, size: 5}
+        b[2 * l] = {x: d[l + 1].x, y: d[l + 1].y, r: 0.13, g: 0.68, b: 0.65, size: 5}
 
         drawBezierControlPoints()
     }
@@ -576,7 +582,7 @@ var drawBezierControlPoints = function() {
     for (var i = 0; i < b.length; i++) {
         if (b[i]) {
             bezierPoints = bezierPoints.concat(Object.values(b[i]))
-            drawLabel("b" + i, b[i].x, b[i].y, -1, "#0066ff")
+            drawLabel("b" + i, b[i].x, b[i].y, -1, "#21ADA6")
         }
     }
 
@@ -595,4 +601,9 @@ var delta = function(i) {
     } else {
         return deltaI(i - 2) + deltaI(i - 1) + deltaI(i)
     }
+}
+
+var toggleBezierControlPolygon = function() {
+    showBezierControlPolygon = showBezierControlPolygonCheckbox.checked
+    drawScene()
 }
